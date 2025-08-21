@@ -149,7 +149,7 @@ export default function SignUp() {
 
   return (
     <div className="w-full h-screen flex flex-row">
-      <div className="flex-1 max-w-1/2 flex flex-col justify-between h-full relative">
+      <div className="flex-1 max-w-1/2 hidden xl:flex flex-col justify-between h-full relative">
         <div className="flex flex-row justify-between mt-14 mx-10 text-white z-10">
           <div className="flex flex-row gap-1 items-center">
             <Image src="/logo.png" alt="Logo of Anime Astral" width={40} height={40} />
@@ -191,7 +191,20 @@ export default function SignUp() {
         </div>
       </div>
 
-      <div className="text-white flex-1 max-w-1/2 flex flex-col gap-2 justify-center items-center h-full p-5">
+      <div className="text-white flex-1 xl:max-w-1/2 flex flex-col gap-2 justify-center items-center h-full p-5">
+      <div className="xl:hidden flex flex-row gap-10 text-xs items-center">
+            <Link href="/">
+              <button className="hover:scale-105 hover:cursor-pointer text-white transition-all duration-200">
+                Sign in
+              </button>
+            </Link>
+            <Link href="/login">
+              <button className="bg-transparent border border-white text-white px-7 rounded-full hover:scale-105 hover:cursor-pointer transition-all duration-200 h-8">
+                Log in
+              </button>
+            </Link>
+          </div>
+        
         <h2 className="text-white text-7xl --Strike">Hi, join us</h2>
         <p className="text-sm">Welcome to Anime Astral!</p>
 
@@ -207,7 +220,7 @@ export default function SignUp() {
           </div>
         )}
 
-        <form onSubmit={handleRegister} className="flex flex-col gap-4 w-1/2">
+        <form onSubmit={handleRegister} className="flex flex-col gap-4 w-[80%] mx-auto xl:w-1/2">
           <input
             type="email"
             name="email"
