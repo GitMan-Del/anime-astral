@@ -72,7 +72,7 @@ export default function VerificationCode() {
 
   return (
     <div className="w-full h-screen flex flex-row">
-      <div className="flex-1 max-w-1/2 flex flex-col justify-between h-full relative">
+      <div className="hidden flex-1 max-w-1/2 xl:flex flex-col justify-between h-full relative">
         <div className="flex flex-row justify-between mt-14 mx-10 text-white z-10">
           <div className="flex flex-row gap-1 items-center">
             <Image src="/logo.png" alt="Logo of Anime Astral" priority width={40} height={40} />
@@ -122,11 +122,11 @@ export default function VerificationCode() {
           />
         </div>
       </div>
-      <div className="text-white flex-1 max-w-1/2 flex flex-col gap-2 justify-center items-center h-full p-5">
+      <div className="text-white flex-1 xl:max-w-1/2 flex flex-col gap-2 justify-center items-center h-full p-5">
         <h2 className="text-white text-7xl --Strike">Verification</h2>
         <p className="text-sm text-center">Please enter the 5-digit code sent to your email</p>
         
-        <form className="flex flex-col gap-4 w-1/2">
+        <form className="flex flex-col gap-4 w-[80%] mx-auto xl:w-1/2">
           <div className="flex flex-row gap-3 justify-center">
             {values.map((val, idx) => (
               <input
