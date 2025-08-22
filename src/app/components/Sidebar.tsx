@@ -19,7 +19,7 @@ const Sidebar: React.FC = () => {
           <Link href='/dashboard'><Image src="/collection-play.svg" alt='Browser' width={20} height={20} /></Link>
         </li>
         <li className="transition-transform duration-150 hover:scale-110">
-          <Link href='/dashboard'><Image src="/people.svg" alt='Browser' width={20} height={20} /></Link>
+          <Link href='/dashboard/friends'><Image src="/people.svg" alt='Friends' width={20} height={20} /></Link>
         </li>
         <li className="transition-transform duration-150 hover:scale-110">
           <Link href='/dashboard'><Image src="/filter.svg" alt='Browser' width={20} height={20} /></Link>

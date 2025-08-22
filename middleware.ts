@@ -17,7 +17,8 @@ export async function middleware(request: NextRequest) {
       '/dashboard',
       '/verfication-cod',
       '/api/verify-code',
-      '/api/send-verification-code'
+      '/api/send-verification-code',
+      '/api/friends'
     ];
     
     const isProtectedPath = protectedPaths.some(path => 

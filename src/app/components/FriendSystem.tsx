@@ -7,7 +7,6 @@ import Image from 'next/image';
 interface Friend {
   id: string;
   username: string;
-  display_name: string;
   avatar_url: string;
   friendship_id: string;
   friends_since: string;
@@ -18,7 +17,6 @@ interface FriendRequest {
   sender: {
     id: string;
     username: string;
-    display_name: string;
     avatar_url: string;
   };
   created_at: string;
@@ -32,13 +30,52 @@ export default function FriendSystem() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [activeTab, setActiveTab] = useState<'friends' | 'requests' | 'add'>('friends');
+  const [userProfile, setUserProfile] = useState<{friend_code: string | null}>({ friend_code: null });
 
   useEffect(() => {
+    console.log('=== FRONTEND: useEffect triggered ===');
+    console.log('Session state:', {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      userId: session?.user?.id
+    });
+    
     if (session?.user?.id) {
+      console.log('Session valid, calling fetch functions...');
       fetchFriends();
       fetchRequests();
+      fetchUserProfile();
+    } else {
+      console.log('No valid session, skipping fetch calls');
     }
   }, [session]);
+
+  const fetchUserProfile = async () => {
+    console.log('=== FRONTEND: fetchUserProfile START ===');
+    try {
+      console.log('Fetching user profile from /api/friends/profile...');
+      const response = await fetch('/api/friends/profile');
+      
+      console.log('Profile response:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
+      });
+      
+      const data = await response.json();
+      console.log('Profile response data:', data);
+      
+      if (response.ok) {
+        console.log('Profile fetch successful, setting user profile:', data.user);
+        setUserProfile(data.user || { friend_code: null });
+      } else {
+        console.log('Profile fetch failed with error:', data.error);
+      }
+    } catch (error) {
+      console.error('=== FRONTEND: fetchUserProfile ERROR ===');
+      console.error('Error fetching user profile:', error);
+    }
+  };
 
   const fetchFriends = async () => {
     try {
@@ -65,28 +102,54 @@ export default function FriendSystem() {
   };
 
   const sendFriendRequest = async () => {
-    if (!friendCode.trim()) return;
+    console.log('=== FRONTEND: sendFriendRequest START ===');
+    console.log('Friend code to send:', friendCode);
     
+    if (!friendCode.trim()) {
+      console.log('Friend code is empty, returning early');
+      return;
+    }
+    
+    console.log('Setting loading state and preparing request...');
     setLoading(true);
+    
     try {
+      const requestBody = { friend_code: friendCode.trim() };
+      console.log('Request body being sent:', requestBody);
+      
+      console.log('Making fetch request to /api/friends/requests...');
       const response = await fetch('/api/friends/requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ friend_code: friendCode.trim() })
+        body: JSON.stringify(requestBody)
+      });
+      
+      console.log('Response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok
       });
       
       const data = await response.json();
+      console.log('Response data:', data);
       
       if (response.ok) {
+        console.log('Request successful, updating UI...');
         setMessage('Friend request sent successfully!');
         setFriendCode('');
         setActiveTab('requests');
       } else {
+        console.log('Request failed with error:', data.error);
         setMessage(data.error || 'Failed to send friend request');
       }
-    } catch {
+    } catch (error) {
+      console.error('=== FRONTEND: sendFriendRequest ERROR ===');
+      console.error('Error type:', typeof error);
+      console.error('Error message:', error instanceof Error ? error.message : 'No message');
+      console.error('Full error:', error);
       setMessage('Error sending friend request');
     } finally {
+      console.log('Setting loading to false');
       setLoading(false);
     }
   };
@@ -126,12 +189,20 @@ export default function FriendSystem() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h2 className="text-3xl font-bold mb-8 text-center text-gray-800">Friends System</h2>
+    <div className="max-w-4xl mx-auto">
+      <div className="flex justify-between items-center mb-8">
+        <h2 className="text-3xl font-bold text-white">Friends System</h2>
+        {userProfile.friend_code && (
+          <div className="bg-gray-800 px-4 py-2 rounded-lg">
+            <span className="text-gray-400 text-sm">Your Friend Code: </span>
+            <span className="text-white font-mono text-lg">{userProfile.friend_code}</span>
+          </div>
+        )}
+      </div>
       
       {/* Tab Navigation */}
       <div className="flex justify-center mb-8">
-        <div className="flex bg-gray-100 rounded-lg p-1">
+        <div className="flex bg-gray-700 rounded-lg p-1">
           <button
             onClick={() => setActiveTab('friends')}
             className={`px-6 py-2 rounded-md transition-colors ${
@@ -178,8 +249,8 @@ export default function FriendSystem() {
 
       {/* Add Friend Section */}
       {activeTab === 'add' && (
-        <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
-          <h3 className="text-2xl font-semibold mb-6 text-gray-800">Add New Friend</h3>
+        <div className="bg-gray-800 rounded-xl shadow-lg p-8 mb-6">
+          <h3 className="text-2xl font-semibold mb-6 text-white">Add New Friend</h3>
           <div className="max-w-md">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Friend Code
@@ -226,13 +297,13 @@ export default function FriendSystem() {
                   <div className="flex items-center gap-4">
                     <Image
                       src={request.sender.avatar_url || '/default-profile.png'}
-                      alt={request.sender.display_name}
+                      alt={request.sender.username}
                       width={64}
                       height={64}
                       className="rounded-full object-cover border-2 border-gray-200"
                     />
                     <div>
-                      <p className="font-semibold text-lg text-gray-800">{request.sender.display_name}</p>
+                      <p className="font-semibold text-lg text-gray-800">{request.sender.username}</p>
                       <p className="text-gray-600">@{request.sender.username}</p>
                       <p className="text-sm text-gray-500">
                         Sent {new Date(request.created_at).toLocaleDateString()}
@@ -292,12 +363,12 @@ export default function FriendSystem() {
                   <div className="text-center">
                     <Image
                       src={friend.avatar_url || '/default-profile.png'}
-                      alt={friend.display_name}
+                      alt={friend.username}
                       width={80}
                       height={80}
                       className="rounded-full mx-auto mb-4 object-cover border-2 border-gray-200"
                     />
-                    <h4 className="font-semibold text-lg text-gray-800 mb-1">{friend.display_name}</h4>
+                    <h4 className="font-semibold text-lg text-gray-800 mb-1">{friend.username}</h4>
                     <p className="text-gray-600 mb-3">@{friend.username}</p>
                     <div className="text-xs text-gray-500 bg-gray-100 rounded-full px-3 py-1 inline-block">
                       Friends since {new Date(friend.friends_since).toLocaleDateString()}
