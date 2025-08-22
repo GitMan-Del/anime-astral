@@ -5,7 +5,7 @@ import { supabase } from '../../../../../lib/supabase';
 // PUT - Acceptă sau respinge o cerere de prietenie
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -14,7 +14,7 @@ export async function PUT(
     }
 
     const { action } = await request.json(); // 'accept' sau 'reject'
-    const requestId = params.id;
+    const { id: requestId } = await params;
 
     // RLS va verifica că user-ul curent este receiver-ul
     const { data: friendRequest, error: fetchError } = await supabase
@@ -63,7 +63,7 @@ export async function PUT(
 // DELETE - Șterge o cerere de prietenie
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth();
@@ -71,7 +71,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const requestId = params.id;
+    const { id: requestId } = await params;
 
     // RLS va permite ștergerea doar dacă user-ul este sender sau receiver
     const { error } = await supabase

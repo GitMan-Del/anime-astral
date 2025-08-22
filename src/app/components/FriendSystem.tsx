@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import Image from 'next/image';
 
 interface Friend {
   id: string;
@@ -46,8 +47,8 @@ export default function FriendSystem() {
       if (response.ok) {
         setFriends(data.friends || []);
       }
-    } catch (error) {
-      console.error('Error fetching friends:', error);
+    } catch {
+      console.error('Error fetching friends');
     }
   };
 
@@ -58,8 +59,8 @@ export default function FriendSystem() {
       if (response.ok) {
         setRequests(data.requests || []);
       }
-    } catch (error) {
-      console.error('Error fetching requests:', error);
+    } catch {
+      console.error('Error fetching requests');
     }
   };
 
@@ -83,7 +84,7 @@ export default function FriendSystem() {
       } else {
         setMessage(data.error || 'Failed to send friend request');
       }
-    } catch (error) {
+    } catch {
       setMessage('Error sending friend request');
     } finally {
       setLoading(false);
@@ -104,7 +105,7 @@ export default function FriendSystem() {
         fetchFriends();
         setActiveTab('friends');
       }
-    } catch (error) {
+    } catch {
       setMessage(`Error ${action}ing friend request`);
     }
   };
@@ -119,7 +120,7 @@ export default function FriendSystem() {
         setMessage('Friend request deleted successfully!');
         fetchRequests();
       }
-    } catch (error) {
+    } catch {
       setMessage('Error deleting friend request');
     }
   };
@@ -223,10 +224,12 @@ export default function FriendSystem() {
               {requests.map((request) => (
                 <div key={request.id} className="flex items-center justify-between p-6 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                   <div className="flex items-center gap-4">
-                    <img
+                    <Image
                       src={request.sender.avatar_url || '/default-profile.png'}
                       alt={request.sender.display_name}
-                      className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+                      width={64}
+                      height={64}
+                      className="rounded-full object-cover border-2 border-gray-200"
                     />
                     <div>
                       <p className="font-semibold text-lg text-gray-800">{request.sender.display_name}</p>
@@ -287,10 +290,12 @@ export default function FriendSystem() {
               {friends.map((friend) => (
                 <div key={friend.friendship_id} className="border border-gray-200 rounded-xl p-6 hover:shadow-md transition-shadow">
                   <div className="text-center">
-                    <img
+                    <Image
                       src={friend.avatar_url || '/default-profile.png'}
                       alt={friend.display_name}
-                      className="w-20 h-20 rounded-full mx-auto mb-4 object-cover border-2 border-gray-200"
+                      width={80}
+                      height={80}
+                      className="rounded-full mx-auto mb-4 object-cover border-2 border-gray-200"
                     />
                     <h4 className="font-semibold text-lg text-gray-800 mb-1">{friend.display_name}</h4>
                     <p className="text-gray-600 mb-3">@{friend.username}</p>
