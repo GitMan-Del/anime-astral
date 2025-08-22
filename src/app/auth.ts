@@ -4,6 +4,7 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { supabase } from "../lib/supabase";
 import type { User } from "../types/supabase";
+import { generateFriendCode } from '../lib/friendCode';
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -87,11 +88,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           console.log("Google sign-in - User:", user, "Profile:", profile);
 
           if (!existingUser) {
+            // Generează un friend code unic pentru user-ul nou
+            let friendCode;
+            let isUnique = false;
+            
+            while (!isUnique) {
+              friendCode = generateFriendCode();
+              const { data: existingCode } = await supabase
+                .from("users")
+                .select("id")
+                .eq("friend_code", friendCode)
+                .single();
+              
+              if (!existingCode) {
+                isUnique = true;
+              }
+            }
+
             const { error } = await supabase.from("users").insert({
               email: user.email,
               avatar_url: user.image || profile.picture || "/default-profile.png",
               auth_provider: "google",
               email_verified: true,
+              username: user.email.split("@")[0],
+              display_name: user.name || user.email.split("@")[0],
+              friend_code: friendCode,
             });
 
             if (error) {
