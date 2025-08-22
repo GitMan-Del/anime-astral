@@ -88,6 +88,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           console.log("Google sign-in - User:", user, "Profile:", profile);
 
           if (!existingUser) {
+            // Verifică că user.email există
+            if (!user.email) {
+              console.error("User email is missing");
+              return false;
+            }
+
             // Generează un friend code unic pentru user-ul nou
             let friendCode;
             let isUnique = false;
@@ -171,7 +177,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   events: {
     async signIn({ user, account }) {
-      console.log("User signed in:", user.email, "Provider:", account?.provider);
+      console.log("User signed in:", user.email || "No email", "Provider:", account?.provider);
     },
   },
   session: {
