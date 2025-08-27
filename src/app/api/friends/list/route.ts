@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
       .from('friendships')
       .select(`
         *,
-        friend:users(
+        friend:users!friendships_user2_id_fkey(
           id,
           username,
           display_name,
@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
       .from('friendships')
       .select(`
         *,
-        friend:users(
+        friend:users!friendships_user1_id_fkey(
           id,
           username,
           display_name,

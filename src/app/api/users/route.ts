@@ -31,11 +31,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
     }
 
-    // Generează un friend code unic
+    // Generează un friend code unic de forma #XXXX
     let friendCode;
     let isUnique = false;
     let attempts = 0;
-    const maxAttempts = 100;
+    const maxAttempts = 1000; // Măresc numărul de încercări pentru formatul #XXXX
 
     while (!isUnique && attempts < maxAttempts) {
       friendCode = generateFriendCode();
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!isUnique) {
-      return NextResponse.json({ error: 'Could not generate unique friend code' }, { status: 500 });
+      return NextResponse.json({ error: 'Could not generate unique friend code after 1000 attempts' }, { status: 500 });
     }
 
     // Actualizează utilizatorul cu noul friend code

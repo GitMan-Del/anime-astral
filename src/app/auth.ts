@@ -105,11 +105,13 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               return false;
             }
 
-            // Generează un friend code unic pentru user-ul nou
+            // Generează un friend code unic de forma #XXXX pentru user-ul nou
             let friendCode;
             let isUnique = false;
+            let attempts = 0;
+            const maxAttempts = 1000;
             
-            while (!isUnique) {
+            while (!isUnique && attempts < maxAttempts) {
               friendCode = generateFriendCode();
               const { data: existingCode } = await supabase
                 .from("users")
@@ -120,6 +122,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               if (!existingCode) {
                 isUnique = true;
               }
+              attempts++;
+            }
+
+            if (!isUnique) {
+              console.error("Could not generate unique friend code after 1000 attempts");
+              return false;
             }
 
             const { error } = await supabase.from("users").insert({

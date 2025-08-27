@@ -229,7 +229,7 @@ export default function FriendsPage() {
                   <div className="flex space-x-3">
                     <input
                       type="text"
-                      placeholder="Enter friend code (e.g., #123)"
+                      placeholder="Enter friend code (e.g., #1234)"
                       value={searchCode}
                       onChange={(e) => setSearchCode(e.target.value)}
                       className="flex-1 px-4 py-2 bg-[#2A2A2A] border border-[#3A3A3A] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"

@@ -48,12 +48,12 @@ export function useFriends() {
       const data = await response.json();
 
       if (response.ok) {
-        setFriends(data.friends);
+        setFriends(data.friends || []);
       } else {
         setError(data.error || 'Failed to fetch friends');
       }
     } catch (err) {
-      setError(err + 'Failed to fetch friends');
+      setError('Failed to fetch friends: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setLoading(false);
     }
@@ -68,13 +68,13 @@ export function useFriends() {
       const data = await response.json();
 
       if (response.ok) {
-        setReceivedRequests(data.received);
-        setSentRequests(data.sent);
+        setReceivedRequests(data.received || []);
+        setSentRequests(data.sent || []);
       } else {
         setError(data.error || 'Failed to fetch friend requests');
       }
     } catch (err) {
-      setError( err + 'Failed to fetch friend requests');
+      setError('Failed to fetch friend requests: ' + (err instanceof Error ? err.message : String(err)));
     }
   }, [userId]);
 
@@ -100,7 +100,7 @@ export function useFriends() {
         return false;
       }
     } catch (err) {
-      setError(err + 'Failed to send friend request');
+      setError('Failed to send friend request: ' + (err instanceof Error ? err.message : String(err)));
       return false;
     }
   }, [userId, fetchFriendRequests]);
@@ -127,7 +127,7 @@ export function useFriends() {
         return false;
       }
     } catch (err) {
-      setError(err + 'Failed to respond to friend request');
+      setError('Failed to respond to friend request: ' + (err instanceof Error ? err.message : String(err)));
       return false;
     }
   }, [userId, fetchFriendRequests, fetchFriends]);
@@ -145,7 +145,7 @@ export function useFriends() {
         return null;
       }
     } catch (err) {
-      setError( err + 'Failed to search user');
+      setError('Failed to search user: ' + (err instanceof Error ? err.message : String(err)));
       return null;
     }
   }, []);
@@ -170,7 +170,7 @@ export function useFriends() {
         return null;
       }
     } catch (err) {
-      setError(err + 'Failed to generate friend code');
+      setError('Failed to generate friend code: ' + (err instanceof Error ? err.message : String(err)));
       return null;
     }
   }, [userId]);
@@ -181,7 +181,7 @@ export function useFriends() {
       fetchFriends();
       fetchFriendRequests();
     }
-  }, [userId, fetchFriends, fetchFriendRequests]);
+  }, [userId]); // Elimin dependențele pentru a evita loop-uri infinite
 
   return {
     friends,
