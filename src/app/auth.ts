@@ -1,10 +1,21 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
+import * as bcrypt from "bcryptjs";
 import { supabase } from "../lib/supabase";
 import type { User } from "../types/supabase";
 import { generateFriendCode } from '../lib/friendCode';
+
+// Extinde tipul User pentru a include câmpurile suplimentare
+interface ExtendedUser {
+  id: string;
+  email: string;
+  name?: string;
+  image?: string;
+  friend_code?: string;
+  username?: string;
+  display_name?: string;
+}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -152,9 +163,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         session.user.image = user?.avatar_url ?? token.picture ?? "/default-profile.png";
         // Adaug friend_code și alte informații la session
-        (session.user as any).friend_code = user?.friend_code;
-        (session.user as any).username = user?.username;
-        (session.user as any).display_name = user?.display_name;
+        // Add friend_code and other info to session.user
+        (session.user as ExtendedUser).friend_code = user?.friend_code;
+        (session.user as ExtendedUser).username = user?.username;
+        (session.user as ExtendedUser).display_name = user?.display_name;
       } else {
         console.log("No token.sub found");
         session.user.image = "/default-profile.png";
