@@ -146,11 +146,15 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
         const { data: user } = await supabase
           .from("users")
-          .select("avatar_url")
+          .select("avatar_url, friend_code, username, display_name")
           .eq("id", token.sub)
           .single();
 
         session.user.image = user?.avatar_url ?? token.picture ?? "/default-profile.png";
+        // Adaug friend_code și alte informații la session
+        (session.user as any).friend_code = user?.friend_code;
+        (session.user as any).username = user?.username;
+        (session.user as any).display_name = user?.display_name;
       } else {
         console.log("No token.sub found");
         session.user.image = "/default-profile.png";

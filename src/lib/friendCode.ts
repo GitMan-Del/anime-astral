@@ -1,16 +1,39 @@
+/**
+ * Generează un friend code unic de forma #XXX
+ * Unde X este o cifră de la 0-9
+ */
 export function generateFriendCode(): string {
-  // Generează un cod de 4 cifre (0000-9999)
-  const code = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
-  return `#${code}`;
+  const digits = '0123456789';
+  let code = '#';
+  
+  // Generează 3 cifre aleatorii
+  for (let i = 0; i < 3; i++) {
+    code += digits.charAt(Math.floor(Math.random() * digits.length));
+  }
+  
+  return code;
 }
 
-export function validateFriendCode(code: string): boolean {
-  // Validează formatul friend code-ului
-  const regex = /^#[0-9]{4}$/;
-  return regex.test(code);
+/**
+ * Generează un friend code unic de forma #XXXX
+ * Unde X este o cifră de la 0-9
+ */
+export function generateLongFriendCode(): string {
+  const digits = '0123456789';
+  let code = '#';
+  
+  // Generează 4 cifre aleatorii
+  for (let i = 0; i < 4; i++) {
+    code += digits.charAt(Math.floor(Math.random() * digits.length));
+  }
+  
+  return code;
 }
 
-export function sanitizeFriendCode(code: string): string {
-  // Curăță și formatează friend code-ul
-  return code.trim().replace(/^#?/, '#');
+/**
+ * Validează dacă un friend code este valid
+ */
+export function isValidFriendCode(code: string): boolean {
+  const pattern = /^#[0-9]{3,4}$/;
+  return pattern.test(code);
 }
