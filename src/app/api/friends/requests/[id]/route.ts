@@ -1,12 +1,12 @@
-import { NextResponse, NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { auth } from "@/app/auth";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 // Accept or reject request
-export const PATCH = async (
-  req: NextRequest,
-  context: { params: Record<string, string> }
-) => {
+export async function PATCH(
+  req: Request,
+  { params }: { params: { id: string } }
+) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -17,7 +17,7 @@ export const PATCH = async (
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   }
 
-  const requestId = context.params.id;
+  const requestId = params.id;
 
   const { data: fr, error: frErr } = await supabaseAdmin
     .from("friend_requests")
@@ -72,16 +72,16 @@ export const PATCH = async (
 }
 
 // Cancel request (sender only) or delete (cleanup)
-export const DELETE = async (
-  _req: NextRequest,
-  context: { params: Record<string, string> }
-) => {
+export async function DELETE(
+  _req: Request,
+  { params }: { params: { id: string } }
+) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const requestId = context.params.id;
+  const requestId = params.id;
   const { data: fr } = await supabaseAdmin
     .from("friend_requests")
     .select("id, sender_id, receiver_id, status")
