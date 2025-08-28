@@ -72,7 +72,7 @@ export async function PATCH(
 }
 
 // Cancel request (sender only) or delete (cleanup)
-export async function DELETE(
+export async function Delete(
   _req: Request,
   { params }: { params: { id: string } }
 ) {
