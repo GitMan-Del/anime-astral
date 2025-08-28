@@ -5,7 +5,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 // Accept or reject request
 export const PATCH = async (
   req: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Record<string, string> }
 ) => {
   const session = await auth();
   if (!session?.user?.id) {
@@ -74,7 +74,7 @@ export const PATCH = async (
 // Cancel request (sender only) or delete (cleanup)
 export const DELETE = async (
   _req: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Record<string, string> }
 ) => {
   const session = await auth();
   if (!session?.user?.id) {
