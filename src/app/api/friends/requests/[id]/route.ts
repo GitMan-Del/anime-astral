@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { auth } from "@/app/auth";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 // Accept or reject request
 export async function PATCH(
-  req: Request,
+  req: NextRequest,
   context: { params: { id: string } }
 ) {
   const session = await auth();
@@ -73,7 +73,7 @@ export async function PATCH(
 
 // Cancel request (sender only) or delete (cleanup)
 export async function DELETE(
-  _req: Request,
+  _req: NextRequest,
   context: { params: { id: string } }
 ) {
   const session = await auth();
