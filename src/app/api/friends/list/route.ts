@@ -1,79 +1,36 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '../../../../lib/supabase';
+import { NextResponse } from "next/server";
+import { auth } from "@/app/auth";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
-// GET - Obține lista de prieteni pentru un utilizator
-export async function GET(request: NextRequest) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const userId = searchParams.get('userId');
-
-    if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
-    }
-
-    // Obține prieteniile unde utilizatorul este user1
-    const { data: friendships1, error: error1 } = await supabase
-      .from('friendships')
-      .select(`
-        *,
-        friend:users!friendships_user2_id_fkey(
-          id,
-          username,
-          display_name,
-          avatar_url,
-          friend_code,
-          created_at
-        )
-      `)
-      .eq('user1_id', userId);
-
-    if (error1) {
-      console.error('Error fetching friendships1:', error1);
-      return NextResponse.json({ error: 'Failed to fetch friendships' }, { status: 500 });
-    }
-
-    // Obține prieteniile unde utilizatorul este user2
-    const { data: friendships2, error: error2 } = await supabase
-      .from('friendships')
-      .select(`
-        *,
-        friend:users!friendships_user1_id_fkey(
-          id,
-          username,
-          display_name,
-          avatar_url,
-          friend_code,
-          created_at
-        )
-      `)
-      .eq('user2_id', userId);
-
-    if (error2) {
-      console.error('Error fetching friendships2:', error2);
-      return NextResponse.json({ error: 'Failed to fetch friendships' }, { status: 500 });
-    }
-
-    // Combină și formatează rezultatele
-    const friends = [
-      ...(friendships1 || []).map(f => ({
-        friendship_id: f.id,
-        friend: f.friend,
-        friends_since: f.created_at
-      })),
-      ...(friendships2 || []).map(f => ({
-        friendship_id: f.id,
-        friend: f.friend,
-        friends_since: f.created_at
-      }))
-    ].sort((a, b) => new Date(b.friends_since).getTime() - new Date(a.friends_since).getTime());
-
-    return NextResponse.json({ 
-      friends,
-      count: friends.length
-    });
-
-  } catch (error) {
-    console.error('Unexpected error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+export async function GET() {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const userId = session.user.id;
+
+  const { data: rows, error } = await supabaseAdmin
+    .from("friendships")
+    .select("id, user1_id, user2_id, created_at")
+    .or(`user1_id.eq.${userId},user2_id.eq.${userId}`);
+
+  if (error) {
+    return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
+  }
+
+  const friendIds = (rows ?? []).map((f) => (f.user1_id === userId ? f.user2_id : f.user1_id));
+
+  if (friendIds.length === 0) {
+    return NextResponse.json({ friends: [] });
+  }
+
+  const { data: users } = await supabaseAdmin
+    .from("users")
+    .select("id, username, display_name, avatar_url, friend_code")
+    .in("id", friendIds);
+
+  return NextResponse.json({ friends: users ?? [] });
 }
+
+

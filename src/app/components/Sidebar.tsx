@@ -1,7 +1,9 @@
+"use client";
 
 import Link from 'next/link';
 import Image from 'next/image';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { getFriends } from '@/lib/friendsClient';
 
 const Sidebar: React.FC = () => {
   return (
@@ -32,21 +34,8 @@ const Sidebar: React.FC = () => {
         </li>
       </ul>
 
-      {/* Friends */}
-      <div className="flex flex-col gap-2">
-        <div className="transition-transform duration-150 hover:scale-110 hover:rotate-6">
-          <Image src="/logo.png" alt="Logo of Anime Astral" priority width={25} height={25} />
-        </div>
-        <div className="transition-transform duration-150 hover:scale-110 hover:rotate-6">
-          <Image src="/logo.png" alt="Logo of Anime Astral" priority width={25} height={25} />
-        </div>
-        <div className="transition-transform duration-150 hover:scale-110 hover:rotate-6">
-          <Image src="/logo.png" alt="Logo of Anime Astral" priority width={25} height={25} />
-        </div>
-        <div className="transition-transform duration-150 hover:scale-110 hover:rotate-6">
-          <Image src="/logo.png" alt="Logo of Anime Astral" priority width={25} height={25} />
-        </div>
-      </div>
+      {/* Friends avatars (first 4) */}
+      <FriendsAvatars />
       </div>
 
       {/* Settings/Help & Donate */}
@@ -69,3 +58,43 @@ const Sidebar: React.FC = () => {
 };
 
 export default Sidebar;
+
+function FriendsAvatars() {
+  type FriendUser = { id: string; avatar_url: string | null; display_name: string | null; username: string | null };
+  const [friends, setFriends] = useState<FriendUser[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const { friends } = await getFriends();
+        setFriends((friends || []).slice(0, 4));
+      } catch {
+        setFriends([]);
+      }
+    })();
+  }, []);
+
+  const slots = 4;
+  const items: (FriendUser | null)[] = [...friends];
+  while (items.length < slots) items.push(null);
+
+  return (
+    <div className="flex flex-col gap-2">
+      {items.map((u, idx) => (
+        <div key={idx} className="transition-transform duration-150 hover:scale-110 hover:rotate-6">
+          {u ? (
+            <Image
+              src={u.avatar_url || "/default-profile.png"}
+              alt={u.display_name || u.username || "Friend"}
+              width={25}
+              height={25}
+              className="rounded-full object-cover"
+            />
+          ) : (
+            <div className="w-[25px] h-[25px] rounded-full bg-white/10 border border-white/10" />
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}

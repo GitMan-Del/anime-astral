@@ -29,15 +29,6 @@ export interface Friendship {
   created_at: string;
 }
 
-export interface VerificationCode {
-  id: string;
-  user_id: string;
-  code: string;
-  created_at: string;
-  expires_at: string;
-  used: boolean;
-}
-
 export interface Database {
   public: {
     Tables: {
@@ -55,11 +46,6 @@ export interface Database {
         Row: Friendship;
         Insert: Omit<Friendship, 'id' | 'created_at'>;
         Update: Partial<Omit<Friendship, 'id' | 'created_at'>>;
-      };
-      verification_codes: {
-        Row: VerificationCode;
-        Insert: Omit<VerificationCode, 'id' | 'created_at'>;
-        Update: Partial<Omit<VerificationCode, 'id' | 'created_at'>>;
       };
     };
     Functions: {

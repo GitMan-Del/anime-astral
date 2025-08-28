@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { supabase } from '../../../../lib/supabase';
+import { supabaseAdmin } from '../../../../lib/supabaseAdmin';
+import { generateFriendCode } from '../../../../lib/friendCode';
 
 // Verifică variabilele de mediu
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -101,15 +103,41 @@ export async function POST(request: NextRequest) {
     // Hash parola
     const passwordHash = await bcrypt.hash(password, 12);
 
+    // Generează un friend code numeric unic
+    let friendCode: string | null = null;
+    let attempts = 0;
+    while (!friendCode && attempts < 10) {
+      const candidate = generateFriendCode(6);
+      const { data: existingCode } = await supabase
+        .from('users')
+        .select('id')
+        .eq('friend_code', candidate)
+        .maybeSingle();
+      if (!existingCode) friendCode = candidate;
+      attempts++;
+    }
+
+    if (!friendCode) {
+      return NextResponse.json(
+        { error: 'Nu am putut genera un friend code. Încearcă din nou.' },
+        { status: 500 }
+      );
+    }
+
     // Creare utilizator în Supabase
+    const baseName = email.split('@')[0];
     const userData = {
       email,
       password_hash: passwordHash,
       auth_provider: 'credentials' as const,
       email_verified: false,
+      username: baseName,
+      display_name: baseName,
+      friend_code: friendCode,
     };
 
-    const { data: newUser, error } = await supabase
+    // Use admin client to bypass RLS for controlled server-side insert
+    const { data: newUser, error } = await supabaseAdmin
       .from('users')
       .insert(userData)
       .select()

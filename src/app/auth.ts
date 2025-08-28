@@ -1,21 +1,11 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
-import * as bcrypt from "bcryptjs";
+import bcrypt from "bcryptjs";
 import { supabase } from "../lib/supabase";
+import { supabaseAdmin } from "../lib/supabaseAdmin";
 import type { User } from "../types/supabase";
 import { generateFriendCode } from '../lib/friendCode';
-
-// Extinde tipul User pentru a include câmpurile suplimentare
-interface ExtendedUser {
-  id: string;
-  email: string;
-  name?: string;
-  image?: string;
-  friend_code?: string;
-  username?: string;
-  display_name?: string;
-}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -43,7 +33,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         }
 
         try {
-          const { data: user, error } = await supabase
+          // Use admin client to read user for credentials auth (bypass RLS)
+          const { data: user, error } = await supabaseAdmin
             .from("users")
             .select("*")
             .eq("email", credentials.email)
@@ -105,13 +96,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               return false;
             }
 
-            // Generează un friend code unic de forma #XXXX pentru user-ul nou
+            // Generează un friend code unic pentru user-ul nou
             let friendCode;
             let isUnique = false;
-            let attempts = 0;
-            const maxAttempts = 1000;
             
-            while (!isUnique && attempts < maxAttempts) {
+            while (!isUnique) {
               friendCode = generateFriendCode();
               const { data: existingCode } = await supabase
                 .from("users")
@@ -122,12 +111,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               if (!existingCode) {
                 isUnique = true;
               }
-              attempts++;
-            }
-
-            if (!isUnique) {
-              console.error("Could not generate unique friend code after 1000 attempts");
-              return false;
             }
 
             const { error } = await supabase.from("users").insert({
@@ -163,18 +146,14 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       if (token.sub) {
         session.user.id = token.sub;
 
-        const { data: user } = await supabase
+        // Use admin client to fetch avatar (RLS-safe server-side)
+        const { data: user } = await supabaseAdmin
           .from("users")
-          .select("avatar_url, friend_code, username, display_name")
+          .select("avatar_url")
           .eq("id", token.sub)
           .single();
 
         session.user.image = user?.avatar_url ?? token.picture ?? "/default-profile.png";
-        // Adaug friend_code și alte informații la session
-        // Add friend_code and other info to session.user
-        (session.user as ExtendedUser).friend_code = user?.friend_code;
-        (session.user as ExtendedUser).username = user?.username;
-        (session.user as ExtendedUser).display_name = user?.display_name;
       } else {
         console.log("No token.sub found");
         session.user.image = "/default-profile.png";
