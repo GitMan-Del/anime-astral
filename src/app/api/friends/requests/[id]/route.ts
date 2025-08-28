@@ -3,10 +3,10 @@ import { auth } from "@/app/auth";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 // Accept or reject request
-export async function PATCH(
+export const PATCH = async (
   req: NextRequest,
   context: { params: { id: string } }
-) {
+) => {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -72,10 +72,10 @@ export async function PATCH(
 }
 
 // Cancel request (sender only) or delete (cleanup)
-export async function DELETE(
+export const DELETE = async (
   _req: NextRequest,
   context: { params: { id: string } }
-) {
+) => {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
