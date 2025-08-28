@@ -1,9 +1,14 @@
-import { NextResponse } from "next/server";
-import { auth } from "@/app/auth";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "../../../../auth";
+import { supabaseAdmin } from "../../../../../lib/supabaseAdmin";
+
+type RouteParams = { id: string };
 
 // Accept or reject request
-export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+export async function PATCH(
+  req: NextRequest,
+  ctx: { params: Promise<RouteParams> },
+) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -14,7 +19,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   }
 
-  const requestId = params.id; // Use params.id instead of parsing URL
+  const { id: requestId } = await ctx.params; // await pe params
 
   const { data: fr, error: frErr } = await supabaseAdmin
     .from("friend_requests")
@@ -54,7 +59,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
     return NextResponse.json({ error: "Failed to accept" }, { status: 500 });
   }
 
-  // create friendship (ensure ordered pair uniqueness in DB via constraint ideally)
+  // create friendship (ordered pair)
   const user1 = fr.sender_id < fr.receiver_id ? fr.sender_id : fr.receiver_id;
   const user2 = fr.sender_id < fr.receiver_id ? fr.receiver_id : fr.sender_id;
 
@@ -69,21 +74,24 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
 }
 
 // Cancel request (sender only) or delete (cleanup)
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(
+  req: NextRequest,
+  ctx: { params: Promise<RouteParams> },
+) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const requestId = params.id; // Use params.id instead of parsing URL
+  const { id: requestId } = await ctx.params;
 
-  const { data: fr } = await supabaseAdmin
+  const { data: fr, error: fetchError } = await supabaseAdmin
     .from("friend_requests")
     .select("id, sender_id, receiver_id, status")
     .eq("id", requestId)
     .single();
 
-  if (!fr) {
+  if (fetchError || !fr) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
@@ -91,9 +99,14 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { error } = await supabaseAdmin.from("friend_requests").delete().eq("id", requestId);
+  const { error } = await supabaseAdmin
+    .from("friend_requests")
+    .delete()
+    .eq("id", requestId);
+
   if (error) {
     return NextResponse.json({ error: "Failed to delete" }, { status: 500 });
   }
+
   return NextResponse.json({ ok: true });
 }

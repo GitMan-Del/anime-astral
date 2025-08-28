@@ -6,7 +6,7 @@ import {
   JikanAnimeFull,
   JikanFullResponse,
   JikanImageSet,
-} from "@/types/jikan";
+} from "../../types/jikan";
 
 type Props = {
   id: string | number;

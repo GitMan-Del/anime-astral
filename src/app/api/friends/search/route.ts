@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/app/auth";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { auth } from "../../../auth";
+import { supabaseAdmin } from "../../../../lib/supabaseAdmin";
 
 export async function GET(req: Request) {
   const session = await auth();

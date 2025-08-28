@@ -1,34 +1,41 @@
-import { NextResponse, NextRequest } from "next/server";
-import { auth } from "@/app/auth";
-import { supabase } from "@/lib/supabase";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "../../../../auth";
+import { supabaseAdmin } from "../../../../../lib/supabaseAdmin";
 
-// Define the params interface to enforce correct typing
-interface RouteParams {
-  params: { id: string };
-}
+// Context corect: params este Promise
+type Ctx = { params: Promise<{ id: string }> };
 
-export async function DELETE(_req: NextRequest, { params }: RouteParams) {
+export async function DELETE(req: NextRequest, ctx: Ctx) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const userId = session.user.id;
-  const otherId = params.id;
+  const { id } = await ctx.params; // await pe params
 
-  const { data: friendship } = await supabase
+  // verifică existența prieteniei și proprietatea
+  const { data: fs, error: fsErr } = await supabaseAdmin
     .from("friendships")
     .select("id, user1_id, user2_id")
-    .or(`and(user1_id.eq.${userId},user2_id.eq.${otherId}),and(user1_id.eq.${otherId},user2_id.eq.${userId})`)
-    .maybeSingle();
+    .or(`user1_id.eq.${session.user.id},user2_id.eq.${session.user.id}`)
+    .filter("id", "eq", id)
+    .single();
 
-  if (!friendship) {
-    return NextResponse.json({ error: "Not friends" }, { status: 404 });
+  if (fsErr || !fs) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
-  const { error } = await supabaseAdmin.from("friendships").delete().eq("id", friendship.id);
-  if (error) {
+  // opțional: verifică că userul e parte din relație
+  if (fs.user1_id !== session.user.id && fs.user2_id !== session.user.id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
+  const { error: delErr } = await supabaseAdmin
+    .from("friendships")
+    .delete()
+    .eq("id", id);
+
+  if (delErr) {
     return NextResponse.json({ error: "Failed to unfriend" }, { status: 500 });
   }
 
