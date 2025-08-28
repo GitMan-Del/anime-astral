@@ -3,10 +3,7 @@ import { auth } from "@/app/auth";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 // Accept or reject request
-export async function PATCH(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -17,7 +14,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   }
 
-  const requestId = params.id;
+  const requestId = params.id; // Use params.id instead of parsing URL
 
   const { data: fr, error: frErr } = await supabaseAdmin
     .from("friend_requests")
@@ -72,16 +69,14 @@ export async function PATCH(
 }
 
 // Cancel request (sender only) or delete (cleanup)
-export async function Delete(
-  _req: Request,
-  { params }: { params: { id: string } }
-) {
+export async function DELETE(req: Request, { params }: { params: { id: string } }) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const requestId = params.id;
+  const requestId = params.id; // Use params.id instead of parsing URL
+
   const { data: fr } = await supabaseAdmin
     .from("friend_requests")
     .select("id, sender_id, receiver_id, status")
@@ -102,5 +97,3 @@ export async function Delete(
   }
   return NextResponse.json({ ok: true });
 }
-
-

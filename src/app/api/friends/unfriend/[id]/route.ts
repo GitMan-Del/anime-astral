@@ -1,12 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { auth } from "@/app/auth";
 import { supabase } from "@/lib/supabase";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
-export async function DELETE(
-  _req: Request,
-  { params }: { params: { id: string } }
-) {
+// Define the params interface to enforce correct typing
+interface RouteParams {
+  params: { id: string };
+}
+
+export async function DELETE(_req: NextRequest, { params }: RouteParams) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -32,5 +34,3 @@ export async function DELETE(
 
   return NextResponse.json({ ok: true });
 }
-
-

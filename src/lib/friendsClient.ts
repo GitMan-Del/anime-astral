@@ -31,7 +31,7 @@ export async function respondRequest(id: string, action: "accept" | "reject") {
 }
 
 export async function cancelRequest(id: string) {
-  const res = await fetch(`/api/friends/requests/${id}`, { method: "Delete" });
+  const res = await fetch(`/api/friends/requests/${id}`, { method: "DELETE" });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
