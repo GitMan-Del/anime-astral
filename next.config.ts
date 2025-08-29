@@ -55,6 +55,16 @@ const nextConfig = {
   },
   images: {
     remotePatterns: [
+      // Allow any HTTPS or HTTP image from anywhere
+      {
+        protocol: "https",
+        hostname: "**",
+      },
+      {
+        protocol: "http",
+        hostname: "**",
+      },
+      // Explicitly include the original allowed hosts
       {
         protocol: "https",
         hostname: "cdn.myanimelist.net",

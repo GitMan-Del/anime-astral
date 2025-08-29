@@ -11,7 +11,7 @@ export default async function FriendsPage() {
 
   return (
     <div className="bg-[#0F0F0F] flex h-screen">
-      <div>
+      <div className="hidden md:block">
         <Sidebar />
       </div>
 

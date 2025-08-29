@@ -83,13 +83,16 @@ function FriendsAvatars() {
       {items.map((u, idx) => (
         <div key={idx} className="transition-transform duration-150 hover:scale-110 hover:rotate-6">
           {u ? (
-            <Image
-              src={u.avatar_url || "/default-profile.png"}
-              alt={u.display_name || u.username || "Friend"}
-              width={25}
-              height={25}
-              className="rounded-full object-cover"
-            />
+            (
+              <Image
+                src={u.avatar_url || "/default-profile.png"}
+                alt={u.display_name || u.username || "Friend"}
+                width={25}
+                height={25}
+                unoptimized
+                className="rounded-full object-cover"
+              />
+            )
           ) : (
             <div className="w-[25px] h-[25px] rounded-full bg-white/10 border border-white/10" />
           )}

@@ -85,6 +85,7 @@ export default function FriendCard({
             alt="avatar"
             width={64}
             height={64}
+            unoptimized
             className="rounded-full object-cover w-[64px] h-[64px]"
           />
         </div>

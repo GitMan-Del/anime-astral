@@ -158,7 +158,7 @@ export default function FriendsPageClient() {
   return (
     <div className="flex flex-col">
       <section className="rounded-xl p-4">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="relative w-full max-w-[500px]">
             <input
               className="w-full bg-[#0E0E0E] border border-[#2A2A2A] rounded-3xl pl-5 pr-28 py-3 text-white placeholder:text-white/30 outline-none focus:border-[#3A3A3A] transition-colors"
@@ -176,7 +176,7 @@ export default function FriendsPageClient() {
           </div>
 
           <button
-            className="px-4 py-2 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-sm whitespace-nowrap"
+            className="w-full sm:w-auto px-4 py-2 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-sm whitespace-nowrap"
             onClick={async () => {
               await refreshRequests();
               setShowIncoming(true);
@@ -186,7 +186,7 @@ export default function FriendsPageClient() {
           </button>
 
           <button
-            className="px-4 py-2 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-sm whitespace-nowrap"
+            className="w-full sm:w-auto px-4 py-2 rounded-2xl bg-white/10 hover:bg-white/20 text-white text-sm whitespace-nowrap"
             onClick={async () => {
               await refreshRequests();
               setShowSent(true);
@@ -213,7 +213,7 @@ export default function FriendsPageClient() {
 
       {!searchResult && (
         <section className="mt-2">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8 xl:gap-10">
+          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8 xl:gap-10">
             {(friends.length ? friends : mockFriends).map((u) => (
               <FriendCard key={u.id} user={u} />
             ))}

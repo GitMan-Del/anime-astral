@@ -17,8 +17,8 @@ export default function Dashboard() {
 
   return (
     <div className="bg-[#0F0F0F] flex h-screen">
-    {/* Sidebar în stânga */}
-    <div>
+    {/* Sidebar în stânga (ascuns pe mobil) */}
+    <div className="hidden md:block">
       <Sidebar />
     </div>
   
