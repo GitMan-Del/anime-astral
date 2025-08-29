@@ -143,20 +143,40 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return true;
     },
     async session({ session, token }) {
-      if (token.sub) {
-        session.user.id = token.sub;
+      try {
+        // Resolve the authenticated app user's UUID from our "users" table
+        // NextAuth token.sub may be a provider id for OAuth, which does not match our users.id
+        if (session.user?.email) {
+          const { data: dbUser } = await supabaseAdmin
+            .from("users")
+            .select("id, avatar_url")
+            .eq("email", session.user.email)
+            .single();
 
-        // Use admin client to fetch avatar (RLS-safe server-side)
-        const { data: user } = await supabaseAdmin
-          .from("users")
-          .select("avatar_url")
-          .eq("id", token.sub)
-          .single();
-
-        session.user.image = user?.avatar_url ?? token.picture ?? "/default-profile.png";
-      } else {
-        console.log("No token.sub found");
-        session.user.image = "/default-profile.png";
+          if (dbUser?.id) {
+            session.user.id = dbUser.id;
+            session.user.image = dbUser.avatar_url ?? token.picture ?? "/default-profile.png";
+          } else if (token.sub) {
+            // Fallback to token.sub to avoid breaking, but this likely won't match users.id for OAuth
+            session.user.id = token.sub;
+            session.user.image = token.picture ?? "/default-profile.png";
+          }
+        } else if (token.sub) {
+          // No email present; fallback path
+          session.user.id = token.sub;
+          const { data: userById } = await supabaseAdmin
+            .from("users")
+            .select("avatar_url")
+            .eq("id", token.sub)
+            .maybeSingle();
+          session.user.image = userById?.avatar_url ?? token.picture ?? "/default-profile.png";
+        } else {
+          console.log("No session.user.email or token.sub found");
+          session.user.image = "/default-profile.png";
+        }
+      } catch (e) {
+        console.error("session callback error", e);
+        session.user.image = token.picture ?? "/default-profile.png";
       }
       return session;
     },
